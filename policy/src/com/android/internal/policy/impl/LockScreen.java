@@ -1141,13 +1141,30 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
                 mNowPlaying.setSelected(true); // set focus to TextView to allow scrolling
             }
             // Set album art
-            Uri uri = getArtworkUri(getContext(), KeyguardViewMediator.SongId(),
-                    KeyguardViewMediator.AlbumId());
-            if (uri != null && mAlbumArtToggle && !(mUseRingLockscreen && mCustomAppToggle && !mHideUnlockTab)) {
-                mAlbumArt.setImageURI(uri);
-                mAlbumArt.setVisibility(View.VISIBLE);
+            if (shouldShowAlbumArt()) {
+                Uri uri = getArtworkUri(getContext(), KeyguardViewMediator.SongId(),
+                        KeyguardViewMediator.AlbumId());
+                if (uri != null) {
+                    mAlbumArt.setImageURI(uri);
+                    mAlbumArt.setVisibility(View.VISIBLE);
+                }
             }
         }
+    }
+
+    private boolean shouldShowAlbumArt() {
+        if (!mAlbumArtToggle) {
+            return false;
+        }
+        if (mHideUnlockTab) {
+            return false;
+        }
+        if (mUseRingLockscreen) {
+            if (mCustomAppToggle || mRingMinimal) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void sendMediaButtonEvent(int code) {
@@ -1424,7 +1441,30 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
                 }
                 break;
             case CARRIER_TYPE_CUSTOM:
-                return carrierLabelCustom;
+                // If the custom carrier label contains any "$x" items then we must
+                // replace those with the proper text.
+                //  - $n = new line
+                //  - $d = default carrier text
+                //  - $p = plmn carrier text
+                //  - $s = spn carrier text
+                //
+
+                // First we create the default carrier text in case we need it.
+                StringBuilder defaultStr = new StringBuilder();
+                if (telephonyPlmn != null && TextUtils.isEmpty(telephonySpn)) {
+                    defaultStr.append(telephonyPlmn.toString());
+                } else if (telephonySpn != null && TextUtils.isEmpty(telephonyPlmn)) {
+                    defaultStr.append(telephonySpn.toString());
+                } else if (telephonyPlmn != null && telephonySpn != null) {
+                    defaultStr.append(telephonyPlmn.toString() + "|" + telephonySpn.toString());
+                }
+
+                String customStr = carrierLabelCustom;
+                customStr = customStr.replaceAll("\\$n", "\n");
+                customStr = customStr.replaceAll("\\$d", (defaultStr != null) ? defaultStr.toString() : "");
+                customStr = customStr.replaceAll("\\$p", (telephonyPlmn != null) ? telephonyPlmn.toString() : "");
+                customStr = customStr.replaceAll("\\$s", (telephonySpn != null) ? telephonySpn.toString() : "");
+                return customStr;
          }
          return "";
      }

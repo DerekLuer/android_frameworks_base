@@ -85,10 +85,6 @@ public class StatusBarPolicy {
 
     private static int AM_PM_STYLE = AM_PM_STYLE_GONE;
 
-    private static final int BATTERY_STYLE_NORMAL    = 0;
-    private static final int BATTERY_STYLE_PERCENT   = 1;
-    private static final int BATTERY_STYLE_GONE      = 2;
-
     private static final int INET_CONDITION_THRESHOLD = 50;
 
     private final Context mContext;
@@ -113,6 +109,9 @@ public class StatusBarPolicy {
     private boolean mBatteryShowLowOnEndCall = false;
     private static final boolean SHOW_LOW_BATTERY_WARNING = true;
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
+
+    //alarm
+    private boolean mAlarmSet = false;
 
     // phone
     private TelephonyManager mPhone;
@@ -609,11 +608,13 @@ public class StatusBarPolicy {
         }
     };
 
-    private int mStatusBarBattery;
+    private boolean mStatusBarBattery;
     // need another var that superceding mPhoneSignalHidden
     private boolean mShowCmSignal;
 
     private boolean mShowHeadset;
+
+    private boolean mShowAlarmIcon;
 
     class SettingsObserver extends ContentObserver {
         SettingsObserver(Handler handler) {
@@ -630,6 +631,9 @@ public class StatusBarPolicy {
 
             resolver.registerContentObserver(Settings.System
                     .getUriFor(Settings.System.STATUS_BAR_HEADSET), false, this);
+
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUS_BAR_ALARM), false, this);
         }
 
         @Override public void onChange(boolean selfChange) {
@@ -794,8 +798,10 @@ public class StatusBarPolicy {
     }
 
     private final void updateAlarm(Intent intent) {
-        boolean alarmSet = intent.getBooleanExtra("alarmSet", false);
-        mService.setIconVisibility("alarm_clock", alarmSet);
+        mAlarmSet = intent.getBooleanExtra("alarmSet", false);
+        mShowAlarmIcon = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_ALARM, 1) == 1);
+        mService.setIconVisibility("alarm_clock", mAlarmSet && mShowAlarmIcon);
     }
 
     private final void updateSyncState(Intent intent) {
@@ -810,13 +816,7 @@ public class StatusBarPolicy {
         final int id = intent.getIntExtra("icon-small", 0);
         int level = intent.getIntExtra("level", 0);
         mService.setIcon("battery", id, level);
-        if(mStatusBarBattery == BATTERY_STYLE_NORMAL) {
-                mService.setIconVisibility("battery", true);
-        } else if (mStatusBarBattery == BATTERY_STYLE_PERCENT) {
-                mService.setIconVisibility("battery", false);
-        } else if (mStatusBarBattery == BATTERY_STYLE_GONE) {
-                mService.setIconVisibility("battery", false);
-        }
+        mService.setIconVisibility("battery", mStatusBarBattery);
 
         boolean plugged = intent.getIntExtra("plugged", 0) != 0;
         level = intent.getIntExtra("level", -1);
@@ -1661,19 +1661,17 @@ public class StatusBarPolicy {
     private void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
-        int statusBarBattery = Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_BATTERY, 0);
-        mStatusBarBattery = Integer.valueOf(statusBarBattery);
-
-        if (mStatusBarBattery == BATTERY_STYLE_NORMAL) {
-                mService.setIconVisibility("battery", true);
-        } else if (mStatusBarBattery == BATTERY_STYLE_PERCENT || mStatusBarBattery == BATTERY_STYLE_GONE) {
-                mService.setIconVisibility("battery", false);
-        }
+        mStatusBarBattery = (Settings.System.getInt(resolver,
+                Settings.System.STATUS_BAR_BATTERY, 0) == 0);
+        mService.setIconVisibility("battery", mStatusBarBattery);
 
         mShowHeadset = (Settings.System.getInt(resolver,
                 Settings.System.STATUS_BAR_HEADSET, 1) == 1);
         mService.setIconVisibility("headset", mShowHeadset && mHeadsetPlugged);
+
+        mShowAlarmIcon = (Settings.System.getInt(resolver,
+                Settings.System.STATUS_BAR_ALARM, 1) == 1);
+        mService.setIconVisibility("alarm_clock", mAlarmSet && mShowAlarmIcon);
 
         // 0 will hide the cmsignaltext and show the signal bars
         mShowCmSignal = Settings.System.getInt(mContext.getContentResolver(),

@@ -25,6 +25,7 @@ const char *MEDIA_MIMETYPE_VIDEO_AVC = "video/avc";
 const char *MEDIA_MIMETYPE_VIDEO_MPEG4 = "video/mp4v-es";
 const char *MEDIA_MIMETYPE_VIDEO_H263 = "video/3gpp";
 const char *MEDIA_MIMETYPE_VIDEO_RAW = "video/raw";
+
 const char *MEDIA_MIMETYPE_VIDEO_VP6 = "video/x-vp6";
 const char *MEDIA_MIMETYPE_VIDEO_VP7 = "video/x-vp7";
 const char *MEDIA_MIMETYPE_VIDEO_WMV  = "video/x-ms-wmv";

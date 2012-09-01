@@ -53,7 +53,7 @@ struct OMXCodec : public MediaSource,
             const char *matchComponentName = NULL,
             uint32_t flags = 0);
 
-#ifdef OMAP_ENHANCEMENT
+#if defined(OMAP_ENHANCEMENT)
     static sp<MediaSource> Create(
             const sp<IOMX> &omx,
             const sp<MetaData> &meta, bool createEncoder,
@@ -339,7 +339,7 @@ protected:
 #endif
 };
 
-#if defined(OMAP_ENHANCEMENT)
+#ifdef OMAP_ENHANCEMENT
 struct OMXCodecObserver : public BnOMXObserver {
     OMXCodecObserver() {
     }

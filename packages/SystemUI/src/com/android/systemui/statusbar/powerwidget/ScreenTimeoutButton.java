@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.provider.Settings;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class ScreenTimeoutButton extends PowerButton {
     private static final int CM_MODE_15_60_300 = 0;
     private static final int CM_MODE_30_120_300 = 1;
 
-    private static Toast TOAST = null;
+    private Toast mToast = null;
 
     private static final List<Uri> OBSERVED_URIS = new ArrayList<Uri>();
     static {
@@ -36,8 +37,17 @@ public class ScreenTimeoutButton extends PowerButton {
     public ScreenTimeoutButton() { mType = BUTTON_SCREENTIMEOUT; }
 
     @Override
-    protected void updateState() {
-        int timeout=getScreenTtimeout(mView.getContext());
+    protected void setupButton(View view) {
+        super.setupButton(view);
+        if (view == null && mToast != null) {
+            mToast.cancel();
+            mToast = null;
+        }
+    }
+
+    @Override
+    protected void updateState(Context context) {
+        int timeout = getScreenTimeout(context);
 
         if (timeout <= SCREEN_TIMEOUT_LOW) {
             mIcon = R.drawable.stat_screen_timeout_off;
@@ -52,59 +62,56 @@ public class ScreenTimeoutButton extends PowerButton {
     }
 
     @Override
-    protected void toggleState() {
-        Context context = mView.getContext();
-        int screentimeout = getScreenTtimeout(context);
+    protected void toggleState(Context context) {
+        int screenTimeout = getScreenTimeout(context);
         int currentMode = getCurrentCMMode(context);
 
-        if (screentimeout < SCREEN_TIMEOUT_MIN) {
+        if (screenTimeout < SCREEN_TIMEOUT_MIN) {
             if (currentMode == CM_MODE_15_60_300) {
-                screentimeout = SCREEN_TIMEOUT_MIN;
+                screenTimeout = SCREEN_TIMEOUT_MIN;
             } else {
-                screentimeout = SCREEN_TIMEOUT_LOW;
+                screenTimeout = SCREEN_TIMEOUT_LOW;
             }
-        } else if (screentimeout < SCREEN_TIMEOUT_LOW) {
+        } else if (screenTimeout < SCREEN_TIMEOUT_LOW) {
             if (currentMode == CM_MODE_15_60_300) {
-                screentimeout = SCREEN_TIMEOUT_NORMAL;
+                screenTimeout = SCREEN_TIMEOUT_NORMAL;
             } else {
-                screentimeout = SCREEN_TIMEOUT_LOW;
+                screenTimeout = SCREEN_TIMEOUT_LOW;
             }
-        } else if (screentimeout < SCREEN_TIMEOUT_NORMAL) {
+        } else if (screenTimeout < SCREEN_TIMEOUT_NORMAL) {
             if (currentMode == CM_MODE_15_60_300) {
-                screentimeout = SCREEN_TIMEOUT_NORMAL;
+                screenTimeout = SCREEN_TIMEOUT_NORMAL;
             } else {
-                screentimeout = SCREEN_TIMEOUT_HIGH;
+                screenTimeout = SCREEN_TIMEOUT_HIGH;
             }
-        } else if (screentimeout < SCREEN_TIMEOUT_HIGH) {
+        } else if (screenTimeout < SCREEN_TIMEOUT_HIGH) {
             if (currentMode == CM_MODE_15_60_300) {
-                screentimeout = SCREEN_TIMEOUT_MAX;
+                screenTimeout = SCREEN_TIMEOUT_MAX;
             } else {
-                screentimeout = SCREEN_TIMEOUT_HIGH;
+                screenTimeout = SCREEN_TIMEOUT_HIGH;
             }
-        } else if (screentimeout < SCREEN_TIMEOUT_MAX) {
-            screentimeout = SCREEN_TIMEOUT_MAX;
+        } else if (screenTimeout < SCREEN_TIMEOUT_MAX) {
+            screenTimeout = SCREEN_TIMEOUT_MAX;
         } else if (currentMode == CM_MODE_30_120_300) {
-            screentimeout = SCREEN_TIMEOUT_LOW;
+            screenTimeout = SCREEN_TIMEOUT_LOW;
         } else {
-            screentimeout = SCREEN_TIMEOUT_MIN;
+            screenTimeout = SCREEN_TIMEOUT_MIN;
         }
 
         Settings.System.putInt(
                 context.getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT, screentimeout);
-
-        // create our toast
-        if(TOAST == null) {
-            TOAST = Toast.makeText(context, "", Toast.LENGTH_LONG);
-        }
+                Settings.System.SCREEN_OFF_TIMEOUT, screenTimeout);
 
         // cancel any previous toast
-        TOAST.cancel();
+        if (mToast != null) {
+            mToast.cancel();
+        }
 
         // inform users of how long the timeout is now
-        TOAST.setText("Screen timeout set to: " + timeoutToString(screentimeout));
-        TOAST.setGravity(Gravity.CENTER, TOAST.getXOffset() / 2, TOAST.getYOffset() / 2);
-        TOAST.show();
+        mToast = Toast.makeText(context, "Screen timeout set to: " + timeoutToString(screenTimeout),
+                Toast.LENGTH_LONG);
+        mToast.setGravity(Gravity.CENTER, mToast.getXOffset() / 2, mToast.getYOffset() / 2);
+        mToast.show();
     }
 
     @Override
@@ -113,15 +120,15 @@ public class ScreenTimeoutButton extends PowerButton {
     }
 
     @Override
-    protected boolean handleLongClick() {
+    protected boolean handleLongClick(Context context) {
         Intent intent = new Intent("android.settings.DISPLAY_SETTINGS");
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mView.getContext().startActivity(intent);
+        context.startActivity(intent);
         return true;
     }
 
-    private static int getScreenTtimeout(Context context) {
+    private static int getScreenTimeout(Context context) {
         return Settings.System.getInt(
                 context.getContentResolver(),
                 Settings.System.SCREEN_OFF_TIMEOUT, 0);

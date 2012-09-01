@@ -28,6 +28,7 @@ extern const char *MEDIA_MIMETYPE_VIDEO_MPEG4;
 extern const char *MEDIA_MIMETYPE_VIDEO_H263;
 extern const char *MEDIA_MIMETYPE_VIDEO_RAW;
 extern const char *MEDIA_MIMETYPE_VIDEO_WMV;
+
 extern const char *MEDIA_MIMETYPE_VIDEO_VP6;
 extern const char *MEDIA_MIMETYPE_VIDEO_VP7;
 

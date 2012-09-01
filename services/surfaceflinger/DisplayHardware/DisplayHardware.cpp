@@ -41,7 +41,7 @@
 #include <hardware/gralloc.h>
 
 #include "GLExtensions.h"
-
+#undef EGL_ANDROID_swap_rectangle
 using namespace android;
 
 

@@ -1111,6 +1111,9 @@ public final class Settings {
             putInt(cr, SHOW_GTALK_SERVICE_STATUS, flag ? 1 : 0);
         }
 
+        /** @hide */
+        public static final String SWAP_VOLUME_KEYS_ORIENTATION = "swap_volume_keys_orientation";
+
         /**
          * The content:// style URL for this table
          */
@@ -1601,6 +1604,24 @@ public final class Settings {
          * not change the volume. See AudioManager.
          */
         public static final String VOLUME_BLUETOOTH_SCO = "volume_bluetooth_sco";
+
+        /**
+         * Whether the phone ringtone should be played in an increasing manner
+         * @hide
+         */
+        public static final String INCREASING_RING = "increasing_ring";
+
+        /**
+         * Minimum volume index for increasing ring volume
+         * @hide
+         */
+        public static final String INCREASING_RING_MIN_VOLUME = "increasing_ring_min_vol";
+
+        /**
+         * Time (in ms) between ringtone volume increases
+         * @hide
+         */
+        public static final String INCREASING_RING_INTERVAL = "increasing_ring_interval";
 
         /**
          * Whether the notifications should use the ring volume (value of 1) or
@@ -2164,6 +2185,12 @@ public final class Settings {
         public static final String DOCK_SOUNDS_ENABLED = "dock_sounds_enabled";
 
         /**
+         * Start adb over network on desktop dock plug (for standalone charge docks)
+         * @hide
+         */
+        public static final String DOCK_ADB_NET_ENABLED = "dock_adb_net_enabled";
+
+        /**
          * Whether to play sounds when the keyguard is shown and dismissed.
          * @hide
          */
@@ -2210,6 +2237,14 @@ public final class Settings {
          * @hide
          */
         public static final String UNLOCK_SOUND = "unlock_sound";
+
+        /**
+         * Always turn on screen after call ignoring proximity?
+         * 0 = no
+         * 1 = yes
+         * @hide
+         */
+        public static final String INACCURATE_PROXIMITY_WORKAROUND = "inaccurate_proximity_sensor";
 
         /**
          * Receive incoming SIP calls?
@@ -2294,12 +2329,18 @@ public final class Settings {
         /**
          * Display style of the status bar battery information
          * 0: Display the stock battery information
-         * 1: Display cm battery percentage implementation / dont show stock icon
+         * 1: Display cm battery percentage
          * 2: Hide the battery information
+         * 3: Display status bar battery
          * default: 0
          * @hide
          */
         public static final String STATUS_BAR_BATTERY = "status_bar_battery";
+
+        /**
+         * Color for the status bar battery style
+         */
+        public static final String STATUS_BAR_BATTERY_COLOR = "status_bar_battery_color";
 
         /**
          * Whether to show the clock in status bar
@@ -2310,6 +2351,16 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_CLOCK = "status_bar_clock";
+
+        /**
+         * Whether to show the alarm icon in status bar
+         * of the stock clock
+         * 0: don't show the alarm icon
+         * 1: show the alarm icon
+         * default: 1
+         * @hide
+         */
+        public static final String STATUS_BAR_ALARM = "status_bar_alarm";
 
         /**
          * Whether to show the signal text or signal bars.
@@ -2926,6 +2977,12 @@ public final class Settings {
         public static final String OVERSCROLL_WEIGHT = "overscroll_weight";
 
         /**
+         * Sets the overscroller color (edge bounce effect on lists)
+         * @hide
+         */
+        public static final String OVERSCROLL_COLOR = "overscroll_color";
+
+        /**
          * Whether or not volume button music controls should be enabled to seek media tracks
          * @hide
          */
@@ -3055,6 +3112,7 @@ public final class Settings {
             CALL_AUTO_RETRY,
             HEARING_AID,
             TTY_MODE,
+            DOCK_ADB_NET_ENABLED,
             SOUND_EFFECTS_ENABLED,
             HAPTIC_FEEDBACK_ENABLED,
             POWER_SOUNDS_ENABLED,
@@ -3584,6 +3642,7 @@ public final class Settings {
 
         /**
          * The TCP/IP port to run ADB on, or -1 for USB
+         * @hide
          */
         public static final String ADB_PORT = "adb_port";
 

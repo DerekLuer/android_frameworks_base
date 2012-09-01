@@ -38,6 +38,13 @@
 #define FM_JNI_SUCCESS 0L
 #define FM_JNI_FAILURE -1L
 
+/*****************IOCTLS******************/
+/*magic value*/
+#define wl1271_IOC_MAGIC 0x42535442
+
+/*commands*/
+#define wl1271_IOC_POWERUP                          _IO(wl1271_IOC_MAGIC, 0)
+
 
 int setFreq(int freq);
 int radioOn();
@@ -51,22 +58,33 @@ static int lastFreq = 0;
 static int giLow = 87500;
 static int giStep = 100;
 
-int radioOn()
+int radioOn(int fd)
 {
     if (radioEnabled) {
         return FM_JNI_SUCCESS;
     }
 
     // power up FM radio
-    if (system("hcitool cmd 0x3f 0x137 0x01 0x01") < 0) {
+ /*   if (system("hcitool cmd 0x3f 0x137 0x01 0x01") < 0) {
+        return FM_JNI_FAILURE;
+    } */
+
+    int ret;
+
+    ret = ioctl(fd, wl1271_IOC_POWERUP);
+
+    if (ret < 0)
+    {
+        LOGE("%s: IOCTL wl1271_IOC_POWERUP failed %d", __func__, ret);
         return FM_JNI_FAILURE;
     }
 
-    // now discard the following readings
+    // POWER (Register 0x20)
     system("hcitool cmd 0x3f 0x133 0x20 0x02 0x00");
-    system("hcitool cmd 0x3f 0x133 0x20 0x02 0x00");
+    // RSSI (Register 0x01)
+    system("hcitool cmd 0x3f 0x133 0x01 0x02 0x00");
 
-    // set FM + RDS
+    // POWER: Rx on plus RDS
     system("hcitool cmd 0x3f 0x135 0x20 0x02 0x00 0x00 0x03");
     // AUDIO_ENABLE_ANALOG | AUDIO_ENABLE_I2S
     system("hcitool cmd 0x3f 0x135 0x1d 0x02 0x00 0x00 0x03");
@@ -81,7 +99,7 @@ int radioOn()
     if (lastFreq != 0) {
         setFreq(lastFreq);
     }
-
+    LOGD("radioOn lastFreq %d", lastFreq);
     return FM_JNI_SUCCESS;
 }
 
@@ -107,7 +125,7 @@ int setFreq(int freq)
 {
     int val = freq - 87500;
     val /= 50; // round to 50KHZ
-
+    LOGD("setFreq val /=50: %d, freq: %d",val,freq);
     char s[100] = "hcitool cmd 0x3f 0x135 0x0a 0x02 0x00 ";
     char stemp[10] = "";
 
@@ -115,20 +133,22 @@ int setFreq(int freq)
     strcat(s, stemp);
     sprintf(stemp, "0x%2.2x", val & 0xFF);
     strcat(s, stemp);
-
     system(s);
+    LOGD("s %s, stemp %s", s, stemp);
 
     // TUNER_MODE_PRESET needed after setting frequency
     if (system("hcitool cmd 0x3f 0x135 0x2d 0x02 0x00 0x00 0x01") < 0) {
+    LOGD("TUNER_MODE_PRESET %p", system);
         return FM_JNI_FAILURE;
     }
-
+    LOGD("int setFreq %d", freq);
     lastFreq = freq;
     return FM_JNI_SUCCESS;
 }
 
 int setBand(int iLow, int iHigh)
 {
+    LOGD("Enter to setBand");
     if (iLow == 76000) {
         // Japan
         system("hcitool cmd 0x3f 0x135 0x10 0x02 0x00 0x00 0x01");
@@ -145,7 +165,7 @@ int setBand(int iLow, int iHigh)
         // spacing 100kHz
         system("hcitool cmd 0x3f 0x135 0x38 0x02 0x00 0x00 0x02");
     }
-
+    LOGD("iLow %d, iHight %d", iLow, iHigh);
     return FM_JNI_SUCCESS;
 }
 
@@ -153,6 +173,7 @@ int HexStr2Int(const char* szHexStr)
 {
      unsigned long Result;
      sscanf(szHexStr, "%lx", &Result);
+     LOGD("HexStr2Int %d", Result);
      return Result;
 }
 
@@ -163,7 +184,7 @@ int getFreq(){
      char sHigh[3];
      char sNoValid[3];
      char sResult[5];
-
+     LOGD("Enter to getFreq()");
      // Create a pipe and wait for tool answere
      pRunPipe = popen("hcitool cmd 0x3F 0x133 0x0A 0x02 0x00", "r");
      if (pRunPipe)
@@ -182,6 +203,7 @@ int getFreq(){
 
              // Return FM actual freq.
              return (HexStr2Int( sResult ) * 50 + 87500);
+             LOGD("FM actual freq %d", (HexStr2Int( sResult ) * 50 + 87500));
          }
          else
               return FM_JNI_FAILURE;
@@ -225,6 +247,7 @@ static jint android_hardware_fmradio_FmReceiverJNI_setControlNative
 static jint android_hardware_fmradio_FmReceiverJNI_getFreqNative
     (JNIEnv * env, jobject thiz, jint fd)
 {
+        LOGD("getFreq freq ");
         return getFreq();
 }
 
@@ -232,6 +255,7 @@ static jint android_hardware_fmradio_FmReceiverJNI_getFreqNative
 static jint android_hardware_fmradio_FmReceiverJNI_setFreqNative
     (JNIEnv * env, jobject thiz, jint fd, jint freq)
 {
+    LOGD("setFreq freq %d", freq);
     return setFreq(freq);
 }
 

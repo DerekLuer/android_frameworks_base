@@ -288,8 +288,11 @@ public class MediaRecorder
     public native void setVideoSource(int video_source)
             throws IllegalStateException;
 
+    /** @hide */
     public native void setCameraParameters(String params)
             throws IllegalStateException;
+
+    public native void autoFocusCamera() throws IllegalStateException;
 
     /**
      * Uses the settings from a CamcorderProfile object for recording. This method should
