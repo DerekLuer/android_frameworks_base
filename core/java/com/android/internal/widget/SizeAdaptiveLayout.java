@@ -53,7 +53,7 @@ public class SizeAdaptiveLayout extends ViewGroup {
 
     private static final String TAG = "SizeAdaptiveLayout";
     private static final boolean DEBUG = false;
-    private static final boolean REPORT_BAD_BOUNDS = true;
+    private static final boolean REPORT_BAD_BOUNDS = false;
     private static final long CROSSFADE_TIME = 250;
 
     // TypedArray indices
