@@ -582,7 +582,7 @@ int AndroidRuntime::startVm(JavaVM** pJavaVM, JNIEnv** pEnv)
 
     strcpy(heaptargetutilizationOptsBuf, "-XX:HeapTargetUtilization=");
     property_get("dalvik.vm.heaptargetutilization", heaptargetutilizationOptsBuf+26, "");
-    if (heapmaxfreeOptsBuf[26] != '\0') {
+    if (heaptargetutilizationOptsBuf[26] != '\0') {
         opt.optionString = heaptargetutilizationOptsBuf;
         mOptions.add(opt);
     }
