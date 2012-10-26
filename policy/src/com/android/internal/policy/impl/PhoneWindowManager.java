@@ -552,6 +552,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Behavior of home unlock
+    boolean mHomeUnlockScreen;
+
     // Behavior of POWER button while in-call and screen on.
     // (See Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR.)
     int mIncallPowerBehavior;
@@ -643,6 +646,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.VOLBTN_MUSIC_CONTROLS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ACCELEROMETER_ROTATION), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HOME_UNLOCK_SCREEN), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.USER_ROTATION), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -1371,6 +1376,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
             mNavigationBarHeightForRotation[mPortraitRotation] =
             mNavigationBarHeightForRotation[mUpsideDownRotation] = mOnScreenButtonsHeight * DisplayMetrics.DENSITY_DEVICE/DisplayMetrics.DENSITY_DEFAULT;
+
+            mHomeUnlockScreen = (Settings.System.getInt(resolver,
+                    Settings.System.HOME_UNLOCK_SCREEN, 0) == 1);
 
             boolean keyRebindingEnabled = Settings.System.getInt(resolver,
                     Settings.System.HARDWARE_KEY_REBINDING, 0) == 1;
