@@ -25,7 +25,7 @@
 namespace android {
 
 static jlong android_os_Trace_nativeGetEnabledTags(JNIEnv* env, jclass clazz) {
-    return Tracer::getEnabledTags();
+    return 0;//Tracer::getEnabledTags();
 }
 
 static void android_os_Trace_nativeTraceCounter(JNIEnv* env, jclass clazz,
